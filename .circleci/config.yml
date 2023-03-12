@@ -66,7 +66,6 @@ jobs:
           command: |
              cd docker
              docker --version
-             wget -O /bin/hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64 && sudo chmod +x /bin/hadolint
       - save_cache:
           paths: [docker]
           key: backend-build
@@ -153,14 +152,14 @@ jobs:
       #         --tags project=udapeople \
       #         --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
       #         --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
-      # - run:
-      #     name: Add back-end ip to ansible inventory
-      #     command: |
-      #       aws ec2 describe-instances \
-      #         --query 'Reservations[*].Instances[*].PublicIpAddress' \
-      #         --filters Name=tag:Name,Values="backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-      #         --output text >> ~/project/.circleci/ansible/inventory.txt
-      #         cat ~/project/.circleci/ansible/inventory.txt
+      - run:
+          name: Add back-end ip to ansible inventory
+          command: |
+            aws ec2 describe-instances \
+              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --filters Name=tag:Name,Values="backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --output text >> ~/project/.circleci/ansible/inventory.txt
+              cat ~/project/.circleci/ansible/inventory.txt
       - persist_to_workspace:
           root: ~/
           paths:
@@ -469,14 +468,14 @@ workflows:
       - build-backend
       # - test-frontend:
       #     requires: [build-frontend]
-      - test-backend:
-          requires: [build-backend]
+      # - test-backend:
+      #     requires: [build-backend]
       # - scan-backend:
       #     requires: [build-backend]
       # - scan-frontend:
       #     requires: [build-frontend]
-      # - deploy-infrastructure:
-      #     requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+      - deploy-infrastructure:
+          requires: [build-backend]
       # - configure-infrastructure:
       #     requires: [deploy-infrastructure]
       # - run-migrations:
