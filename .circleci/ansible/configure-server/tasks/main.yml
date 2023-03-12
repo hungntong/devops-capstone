@@ -38,3 +38,13 @@
   file:
     path: /usr/local/bin/hadolint
     mode: "+x"
+
+- name: "Copy dist to EC2 server"
+  become: yes
+  copy:
+    src: ~/project/docker/
+    dest: /home/ubuntu/
+
+- name: "Lint Dockerfile"
+  command: hadolint /home/ubuntu/Dockerfile
+  register: hadolint_output
