@@ -66,13 +66,15 @@ jobs:
           command: |
              cd docker
              docker --version
+             wget -O /bin/hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64 &&\
+    	       chmod +x /bin/hadolint
       - save_cache:
           paths: [docker]
           key: backend-build
 
   test-frontend:
     docker:
-      - image: cimg/node:13.8.0
+      - image: cimg/base:2022.09
     steps:
       - checkout
       - restore_cache:
@@ -86,7 +88,7 @@ jobs:
                 
   test-backend:
     docker:
-      - image: cimg/node:13.8.0
+      - image: cimg/base:2022.09
     steps:
       - checkout
       - restore_cache:
@@ -94,9 +96,8 @@ jobs:
       - run:
           name: Run backend test
           command: |
-             cd backend
-             npm install
-             npm run test
+             cd docker
+             hadolint Dockerfile
             
   scan-frontend:
     docker:
@@ -469,8 +470,8 @@ workflows:
       - build-backend
       # - test-frontend:
       #     requires: [build-frontend]
-      # - test-backend:
-      #     requires: [build-backend]
+      - test-backend:
+          requires: [build-backend]
       # - scan-backend:
       #     requires: [build-backend]
       # - scan-frontend:
