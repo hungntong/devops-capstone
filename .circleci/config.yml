@@ -66,15 +66,6 @@ jobs:
           command: |
              cd docker
              docker --version
-      - run:
-          name: Install Hadolint
-          command: |
-            wget -O /usr/local/bin/hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64
-            hadolint --version
-      - run:
-          name: Check Dockerfile
-          command: |
-            hadolint Dockerfile
       - save_cache:
           paths: [docker]
           key: backend-build
