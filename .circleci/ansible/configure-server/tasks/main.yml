@@ -1,0 +1,40 @@
+---
+- name: "update apt packages."
+  become: yes
+  apt:
+    update_cache: yes
+
+- name: "upgrade packages"
+  become: yes
+  apt:
+    upgrade: yes
+
+- name: remove dependencies that are no longer required
+  become: yes
+  apt:
+    autoremove: yes
+
+- name: "install docker"
+  become: yes
+  apt:
+    name: docker
+    state: present
+
+- name: "Install Hadolint"
+  become: true
+  apt:
+    name: curl
+    state: present
+
+- name: "Download Hadolint binary"
+  become: true
+  shell: "curl -L 'https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64' -o /usr/local/bin/hadolint"
+  args:
+    creates: /usr/local/bin/hadolint
+    executable: /bin/bash
+
+- name: "Make Hadolint binary executable"
+  become: true
+  file:
+    path: /usr/local/bin/hadolint
+    mode: "+x"

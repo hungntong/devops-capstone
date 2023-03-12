@@ -173,7 +173,7 @@ jobs:
     steps:
       - checkout
       - add_ssh_keys:
-          fingerprints: ["ba:e3:e3:ad:86:f2:25:40:86:99:db:90:60:5c:29:34"]
+          fingerprints: ["5a:fe:0a:f1:bd:16:54:bc:00:c5:96:40:5c:53:bd:c1"]
       - attach_workspace:
           at: ~/
       - run:
@@ -192,11 +192,6 @@ jobs:
               cd .circleci/ansible
               cat inventory.txt
               ansible-playbook -i inventory.txt configure-server.yml
-      - run:
-          name: Install node_exporter
-          command: |
-            cd .circleci/ansible/
-            ansible-playbook -i inventory.txt install-node-exporter.yml
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}     
 
@@ -476,8 +471,8 @@ workflows:
       #     requires: [build-frontend]
       - deploy-infrastructure:
           requires: [build-backend]
-      # - configure-infrastructure:
-      #     requires: [deploy-infrastructure]
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]
       # - run-migrations:
       #     requires: [configure-infrastructure]
       # - deploy-frontend:
