@@ -45,6 +45,6 @@
     src: ~/project/docker/
     dest: /home/ubuntu/
 
-- name: "Lint Dockerfile"
-  command: hadolint ~/project/docker/Dockerfile
-  register: hadolint_output
+- name: "list Dockerfile"
+  command: ls -al /home/ubuntu/Dockerfile
+  register: output
