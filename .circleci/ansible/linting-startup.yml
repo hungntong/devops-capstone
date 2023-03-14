@@ -1,6 +1,6 @@
 ---
 
-- name: "configuration play." 
+- name: "copy file, linting and startup." 
   hosts: web
   user: ubuntu
   become: true
@@ -25,4 +25,4 @@
         update_cache: yes
 
   roles:
-    - configure-server
+    - linting-startup

@@ -1,0 +1,14 @@
+---
+- name: "Copy dist to EC2 server"
+  become: yes
+  copy:
+    src: ~/project/docker/
+    dest: /home/ubuntu/
+
+- name: "hadolint Dockerfile"
+  command: hadolint --ignore DL3042 /home/ubuntu/Dockerfile
+  register: output
+
+- name: "pylint app.py"
+  command: pylint --disable=R,C,W1203,W1202 /home/ubuntu/app.py
+  register: output
