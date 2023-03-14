@@ -51,6 +51,5 @@
     state: present
 
 - name: "run make install"
-  community.general.make:
-    path: /home/ubuntu/Makefile
-    target: install
+    command: make install
+    path: /home/ubuntu
