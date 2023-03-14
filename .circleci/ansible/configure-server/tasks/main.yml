@@ -52,4 +52,5 @@
 
 - name: "run make install"
     command: make install
-    path: /home/ubuntu
+    args: 
+      chdir: /home/ubuntu
