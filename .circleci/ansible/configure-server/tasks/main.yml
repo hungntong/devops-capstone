@@ -45,14 +45,12 @@
     path: /usr/local/bin/hadolint
     mode: "+x"
 
-- name: "run makefile install"
-  hosts: localhost
-  tasks:
-    - name: "install make"
-      apt:
-        name: make
-        state: present
-    - name: "run make install"
-      community.general.make:
-        chdir: /home/ubuntu/Makefile
-        target: install
+- name: "install make"
+  apt:
+    name: make
+    state: present
+
+- name: "run make install"
+  community.general.make:
+    chdir: /home/ubuntu/Makefile
+    target: install
