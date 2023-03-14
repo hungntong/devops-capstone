@@ -52,5 +52,5 @@
 
 - name: "run make install"
   community.general.make:
-    chdir: /home/ubuntu/Makefile
+    path: /home/ubuntu/Makefile
     target: install
