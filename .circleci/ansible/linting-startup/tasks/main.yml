@@ -9,6 +9,15 @@
   command: hadolint --ignore DL3042 /home/ubuntu/Dockerfile
   register: output
 
-- name: "pylint app.py"
-  command: pylint --disable=R,C,W1203,W1202 /home/ubuntu/app.py
-  register: output
+- name: Start Docker container
+  hosts: localhost
+  tasks:
+  - name: Start Docker container
+    docker_container:
+      name: my_container
+      image: python:3.7.3-stretch
+      ports:
+        - "80:80"
+      volumes:
+        - /app:/app
+      command: python app.py
