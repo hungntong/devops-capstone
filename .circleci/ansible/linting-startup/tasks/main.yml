@@ -12,12 +12,12 @@
 - name: Start Docker container
   hosts: localhost
   tasks:
-  - name: Start Docker container
-    docker_container:
-      name: my_container
-      image: python:3.7.3-stretch
-      ports:
-        - "80:80"
-      volumes:
-        - /app:/app
-      command: python app.py
+    - name: Start Docker container
+      docker_container:
+        name: my_container
+        image: python:3.7.3-stretch
+        ports:
+          - "80:80"
+        volumes:
+          - /app:/app
+        command: python app.py
