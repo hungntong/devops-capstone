@@ -49,8 +49,3 @@
   apt:
     name: make
     state: present
-
-- name: "run make install"
-    command: make install
-    args: 
-      chdir: /home/ubuntu
