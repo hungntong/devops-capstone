@@ -211,6 +211,7 @@ jobs:
             apk upgrade
             apk add tar
             apk add gzip
+            apk add curl
             apk add --update ansible
             python -m pip install --upgrade pip
             pip install awscli --upgrade 
