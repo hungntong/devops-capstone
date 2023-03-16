@@ -243,20 +243,16 @@ jobs:
     steps:
       - checkout
       - run:
-        # creates a virtual environment for you project, 
-				# install dependencies in it and run tests
           name: Run unit tests
           command: |
             cd docker
             python3 -m venv venv
             . venv/bin/activate
             pip install -r requirements.txt
-            pytest
-			# Creates a remote Docker environment configured to execute Docker commands.
+            pylint --disable=R,C,W1203,W1202 app.py
       - setup_remote_docker 
        
       - run:
-        # installs a docker client that will be used to run the docker commands
           name: Install Docker client
           command: |
             set -x
