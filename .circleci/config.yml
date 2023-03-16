@@ -235,7 +235,44 @@ jobs:
                 curl https://kvdb.io/4hkvFqcN1Wuq35GLWsKF3r/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
             fi
       - destroy-environment:
-          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}      
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+
+  build docker image:
+    docker:
+      - image: python:3.8
+    steps:
+      - checkout
+      - run:
+        # creates a virtual environment for you project, 
+				# install dependencies in it and run tests
+          name: Run unit tests
+          command: |
+            cd docker
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install -r requirements.txt
+            pytest
+			# Creates a remote Docker environment configured to execute Docker commands.
+      - setup_remote_docker 
+       
+      - run:
+        # installs a docker client that will be used to run the docker commands
+          name: Install Docker client
+          command: |
+            set -x
+            VER="17.03.0-ce"
+            curl -L -o /tmp/docker-$VER.tgz https://get.docker.com/builds/Linux/x86_64/docker-$VER.tgz
+            tar -xz -C /tmp -f /tmp/docker-$VER.tgz
+            mv /tmp/docker/* /usr/bin
+      - run:
+          name: Build Docker image
+          command: docker build -t skycrafter/capstone .
+
+      - run:
+          name: Push to Docker Hub
+          command: |
+            docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+            docker push skycrafter/capstone
 
   run-migrations:
     docker:
@@ -517,6 +554,8 @@ workflows:
           requires: [deploy-infrastructure]
       - lint-migration:
           requires: [configure-infrastructure]
+      - build docker image:
+          requires: [lint-migration]
       # - run-migrations:
       #     requires: [configure-infrastructure]
       # - deploy-frontend:
