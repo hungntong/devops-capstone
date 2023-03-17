@@ -271,8 +271,6 @@ jobs:
       - run:
           name: Push to Docker Hub
           command: |
-            echo $DOCKER_USER
-            sudo chmod 666 /var/run/docker.sock
             docker login --username "${DOCKER_USER}" --password "${DOCKER_PASSWORD}"
             docker push skycrafter/capstone
 
