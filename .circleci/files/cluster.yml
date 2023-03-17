@@ -18,14 +18,16 @@ Parameters:
   VpcId:
     Description: 'ID of the VPC for the EKS cluster'
     Type: 'AWS::EC2::VPC::Id'
-    CidrBlock: 10.0.0.0/16    
+    Properties:
+      CidrBlock: 10.0.0.0/16    
   ID:
     Description: Unique identifier.
     Type: String  
   SubnetIds:
     Description: 'Comma-separated list of subnet IDs for the EKS cluster'
     Type: 'List<AWS::EC2::Subnet::Id>'
-    CidrBlock: 10.0.0.0/24
+    Properties:
+      CidrBlock: 10.0.0.0/24
 
 Resources:
   EksCluster:
