@@ -264,7 +264,9 @@ jobs:
             mv /tmp/docker/* /usr/bin
       - run:
           name: Build Docker image
-          command: docker build -t skycrafter/capstone .
+          command: |
+            cd docker
+            docker build -t skycrafter/capstone .
 
       - run:
           name: Push to Docker Hub
