@@ -1,60 +1,87 @@
+---
 AWSTemplateFormatVersion: '2010-09-09'
+Description: 'AWS CloudFormation Template to create an EKS cluster'
+
+Parameters:
+  ClusterName:
+    Description: 'Name of the EKS cluster'
+    Type: 'String'
+  NodeInstanceType:
+    Description: 'Instance type for EKS worker nodes'
+    Type: 'String'
+    Default: 't3.medium'
+  NodeCapacity:
+    Description: 'Number of worker nodes for the EKS cluster'
+    Type: 'Number'
+    Default: '2'
+  VpcId:
+    Description: 'ID of the VPC for the EKS cluster'
+    Type: 'AWS::EC2::VPC::Id'
+  SubnetIds:
+    Description: 'Comma-separated list of subnet IDs for the EKS cluster'
+    Type: 'List<AWS::EC2::Subnet::Id>'
+
 Resources:
-  VPC:
-    Type: AWS::EC2::VPC
+  EksCluster:
+    Type: 'AWS::EKS::Cluster'
     Properties:
-      CidrBlock: 10.0.0.0/16
-  Subnet:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref VPC
-      CidrBlock: 10.0.0.0/24
-  InternetGateway:
-    Type: AWS::EC2::InternetGateway
-  VPCGatewayAttachment:
-    Type: AWS::EC2::VPCGatewayAttachment
-    Properties:
-      VpcId: !Ref VPC
-      InternetGatewayId: !Ref InternetGateway
-  RouteTable:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      VpcId: !Ref VPC
-  Route:
-    Type: AWS::EC2::Route
-    DependsOn: VPCGatewayAttachment
-    Properties:
-      RouteTableId: !Ref RouteTable
-      DestinationCidrBlock: 0.0.0.0/0
-      GatewayId: !Ref InternetGateway
-  SubnetRouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      SubnetId: !Ref Subnet
-      RouteTableId: !Ref RouteTable
-  EKSCluster:
-    Type: AWS::EKS::Cluster
-    Properties:
-      Name: my-eks-cluster
-      RoleArn: arn:aws:iam::123456789012:role/eks-cluster-role
-      Version: '1.18'
+      Name: !Ref ClusterName
+      RoleArn: !GetAtt EksClusterRole.Arn
+      Version: '1.20'
       ResourcesVpcConfig:
         SecurityGroupIds:
-          - !Ref SecurityGroup
-        SubnetIds:
-          - !Ref Subnet
-  SecurityGroup:
-    Type: AWS::EC2::SecurityGroup
+          - !GetAtt EksClusterSecurityGroup.GroupId
+        SubnetIds: !Ref SubnetIds
+  EksClusterRole:
+    Type: 'AWS::IAM::Role'
     Properties:
-      GroupDescription: Allow all traffic
-      VpcId: !Ref VPC
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 0
-          ToPort: 65535
-          CidrIp: 0.0.0.0/0
-      SecurityGroupEgress:
-        - IpProtocol: tcp
-          FromPort: 0
-          ToPort: 65535
-          CidrIp: 0.0.0.0/0
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service: 'eks.amazonaws.com'
+            Action: 'sts:AssumeRole'
+      Path: '/'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AmazonEKSClusterPolicy'
+        - 'arn:aws:iam::aws:policy/AmazonEKSServicePolicy'
+  EksClusterSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: 'Security group for the EKS cluster'
+      VpcId: !Ref VpcId
+  EksNodeGroup:
+    Type: 'AWS::EKS::Nodegroup'
+    Properties:
+      ClusterName: !Ref ClusterName
+      NodeRole: !GetAtt EksNodeGroupRole.Arn
+      Subnets: !Ref SubnetIds
+      ScalingConfig:
+        MinSize: !Ref NodeCapacity
+        MaxSize: !Ref NodeCapacity
+        DesiredSize: !Ref NodeCapacity
+      InstanceTypes:
+        - !Ref NodeInstanceType
+      DiskSize: 20
+      RemoteAccess:
+        Ec2SshKey: 'my-key-pair'
+      Tags:
+        - Key: 'Name'
+          Value: 'eks-node-group'
+  EksNodeGroupRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service:
+                - 'ec2.amazonaws.com'
+            Action: 'sts:AssumeRole'
+      Path: '/'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy'
+        - 'arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy'
+        - 'arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly'
