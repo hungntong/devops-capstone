@@ -271,7 +271,7 @@ jobs:
       - run:
           name: Push to Docker Hub
           command: |
-            docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+            docker login -u="${DOCKER_USER}"" -p="${DOCKER_PASSWORD}"
             docker push skycrafter/capstone
 
   run-migrations:
