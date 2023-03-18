@@ -1,24 +1,19 @@
-- name: "Start kubernetes cluster and load image"
-  become: yes
-  vars:
-    dockerpath: skycrafter/capstone
-  tasks:
-    - name: "hadolint Dockerfile"
-      command: kubectl run capstone --image={{ dockerpath }} --port=80
-      register: output
+- name: "Login Docker"
+  command: docker login --username $DOCKER_USER --password $DOCKER_PASSWORD
+  register: output
 
-    - name: "Login Docker"
-      command: docker login --username $DOCKER_USER --password $DOCKER_PASSWORD
-      register: output
+- name: "hadolint Dockerfile"
+  command: kubectl run capstone --image=skycrafter/capstone --port=80
+  register: output
+  
+- name: "List kubernetes pod"
+  command: kubectl get pods
+  register: output
 
-    - name: "List kubernetes pod"
-      command: kubectl get pods
-      register: output
+- name: "Show kubernetes log"
+  command: kubectl logs capstone
+  register: output
 
-    - name: "Show kubernetes log"
-      command: kubectl logs capstone
-      register: output
-
-    - name: "start container"
-      command: kubectl port-forward capstone 80:80
-      register: output
+- name: "start container"
+  command: kubectl port-forward capstone 80:80
+  register: output
