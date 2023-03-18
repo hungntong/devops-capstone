@@ -204,6 +204,13 @@ jobs:
           fingerprints: ["5a:fe:0a:f1:bd:16:54:bc:00:c5:96:40:5c:53:bd:c1"]
       - attach_workspace:
           at: ~/
+      - restore_cache:
+          keys: [backend-build]  
+      - run:
+          name: Copy env
+          command: |
+            echo DOCKER_USER=$DOCKER_USER >> ".env"
+            echo DOCKER_PASSWORD=$DOCKER_PASSWORD >> ".env"
       - run:
           name: Install dependencies
           command: |
@@ -273,6 +280,41 @@ jobs:
           command: |
             docker login --username "${DOCKER_USER}" --password "${DOCKER_PASSWORD}"
             docker push skycrafter/capstone
+
+  deploy-cluster:
+    docker:
+      - image: python:3.7-alpine3.11
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints: ["5a:fe:0a:f1:bd:16:54:bc:00:c5:96:40:5c:53:bd:c1"]
+      - attach_workspace:
+          at: ~/
+      - restore_cache:
+          keys: [backend-build]  
+      - run:
+          name: Copy env
+          command: |
+            echo DOCKER_USER=$DOCKER_USER >> ".env"
+            echo DOCKER_PASSWORD=$DOCKER_PASSWORD >> ".env"
+      - run:
+          name: Install dependencies
+          command: |
+            apk update
+            apk upgrade
+            apk add tar
+            apk add gzip
+            apk add --update ansible
+            python -m pip install --upgrade pip
+            pip install awscli --upgrade 
+      - run:
+          name: Configure server
+          command: |
+              cd .circleci/ansible
+              cat inventory.txt
+              ansible-playbook -i inventory.txt deploy-cluster.yml
+      - destroy-environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   run-migrations:
     docker:
@@ -556,6 +598,8 @@ workflows:
           requires: [configure-infrastructure]
       - build docker image:
           requires: [lint-migration]
+      - deploy-cluster:
+          requires: [build docker image]
       # - run-migrations:
       #     requires: [configure-infrastructure]
       # - deploy-frontend:
