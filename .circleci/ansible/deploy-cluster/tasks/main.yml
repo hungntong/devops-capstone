@@ -1,7 +1,7 @@
 ---
 - name: "Start kubernetes cluster and load image"
   become: yes
-  var:
+  vars:
     dockerpath: skycrafter/capstone
 
 - name: "hadolint Dockerfile"
