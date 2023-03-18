@@ -144,14 +144,14 @@ jobs:
               --tags project=udacity \
               --stack-name "udacity-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
-      - run:
-          name: Ensure EKS infrastructure exist
-          command: |
-            aws cloudformation deploy \
-              --template-file .circleci/files/cluster.yml \
-              --tags project=udacity \
-              --stack-name "udacity-cluster-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
+      # - run:
+      #     name: Ensure EKS infrastructure exist
+      #     command: |
+      #       aws cloudformation deploy \
+      #         --template-file .circleci/files/cluster.yml \
+      #         --tags project=udacity \
+      #         --stack-name "udacity-cluster-${CIRCLE_WORKFLOW_ID:0:7}" \
+      #         --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
       - run:
           name: Add back-end ip to ansible inventory
           command: |
