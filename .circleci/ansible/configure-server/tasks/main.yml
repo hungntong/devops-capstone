@@ -51,7 +51,6 @@
     state: present
 
 - name: Install minikube
-  hosts: ubuntu
   become: yes
 
   vars:
@@ -59,19 +58,19 @@
     minikube_url: https://storage.googleapis.com/minikube/releases/{{ minikube_version }}/minikube-linux-amd64
     minikube_bin_path: /usr/local/bin/minikube
 
-  tasks:
-    - name: Download minikube binary
-      shell: "curl -L '{{ minikube_url }}' -o '{{ minikube_bin_path }}'"
-      args:
-        creates: "{{ minikube_bin_path }}"
-        executable: /bin/bash
+    tasks:
+      - name: Download minikube binary
+        shell: "curl -L '{{ minikube_url }}' -o '{{ minikube_bin_path }}'"
+        args:
+          creates: "{{ minikube_bin_path }}"
+          executable: /bin/bash
 
-    - name: Make minikube binary executable
-      file:
-        path: "{{ minikube_bin_path }}"
-        mode: "+x"
+      - name: Make minikube binary executable
+        file:
+          path: "{{ minikube_bin_path }}"
+          mode: "+x"
 
-    - name: Check minikube version and status
-      shell: |
-        {{ minikube_bin_path }} version
-        {{ minikube_bin_path }} status
+      - name: Check minikube version and status
+        shell: |
+          {{ minikube_bin_path }} version
+          {{ minikube_bin_path }} status
