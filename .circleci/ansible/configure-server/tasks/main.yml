@@ -66,4 +66,3 @@
 - name: Check minikube version and status
   shell: |
     /usr/local/bin/minikube version
-    /usr/local/bin/minikube status
