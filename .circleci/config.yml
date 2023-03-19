@@ -289,14 +289,15 @@ jobs:
       - attach_workspace:
           at: ~/
       - run:
-          name: Install dependencies
+          name: check tar and gzip exists
           command: |
             which tar
             which gzip 
       - run:
           name: Install eksctl
           command: |
-            curl --silent --location "https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+            curl --silent --location "https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_$(uname -s)_amd64.tar.gz"
+            tar xz -C /tmp
             mv /tmp/eksctl /usr/local/bin
       - run:
           name: create kubenetes cluster
@@ -319,8 +320,8 @@ jobs:
             kubectl create deploy capstone --image=skycrafter/capstone
             kubectl get pods
             kubectl port-forward capstone 80:80
-      # - destroy-environment:
-      #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - destroy-environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   run-migrations:
     docker:
