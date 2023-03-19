@@ -184,7 +184,7 @@ jobs:
 
   lint-migration:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: python:3.8
     steps:
       - checkout
       - add_ssh_keys:
