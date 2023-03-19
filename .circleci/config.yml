@@ -283,7 +283,7 @@ jobs:
 
   deploy-cluster:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: cimg/aws:2023.03
     steps:
       - checkout
       - add_ssh_keys:
@@ -293,26 +293,36 @@ jobs:
       - restore_cache:
           keys: [backend-build]  
       - run:
-          name: Copy env
-          command: |
-            echo DOCKER_USER=$DOCKER_USER >> ".env"
-            echo DOCKER_PASSWORD=$DOCKER_PASSWORD >> ".env"
-      - run:
           name: Install dependencies
           command: |
-            apk update
-            apk upgrade
-            apk add tar
-            apk add gzip
-            apk add --update ansible
-            python -m pip install --upgrade pip
-            pip install awscli --upgrade 
+            yum install tar gzip -y
       - run:
-          name: Configure server
+          name: Install eksctl
           command: |
-              cd .circleci/ansible
-              cat inventory.txt
-              ansible-playbook -i inventory.txt deploy-cluster.yml
+            bash
+            curl --silent --location "https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+            mv /tmp/eksctl /usr/local/bin
+      - run:
+          name: create kubenetes cluster
+          command: |
+            eksctl create cluster --name eksCluster-${CIRCLE_WORKFLOW_ID:0:7}
+      - run:
+          name: Install kubernetes
+          command: |
+            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+            install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+            kubectl version --client
+      - run:
+          name: Docker Login
+          command: |
+            docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+      - run:
+          name: Load Docker image
+          command: |
+            kubectl get nodes
+            kubectl create deploy capstone --image=skycrafter/capstone
+            kubectl get pods
+            kubectl port-forward capstone 80:80
       # - destroy-environment:
       #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
