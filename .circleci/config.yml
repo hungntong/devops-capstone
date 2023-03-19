@@ -221,7 +221,6 @@ jobs:
             cd docker
             python3 -m venv venv
             . venv/bin/activate
-            pip install --upgrade pip
             pip install -r requirements.txt
             pylint --disable=R,C,W1203,W1202 app.py
       - setup_remote_docker 
