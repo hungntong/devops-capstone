@@ -1,5 +1,9 @@
 version: 2.1
 
+orbs:
+  aws-eks: circleci/aws-eks@2.2.0
+  kubernetes: circleci/kubernetes@1.3
+
 commands:
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
@@ -291,24 +295,12 @@ jobs:
       - run:
           name: check tar and gzip exists
           command: |
-            which tar
-            which gzip
-      - run:
-          name: Install eksctl
-          command: |
-            bash 
-            curl --silent --location "https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_$(uname -s)_amd64.tar.gz" && tar -xz -C eksctl
-            mv eksctl /usr/local/bin
+            which eksctl
+            which kubectl     
       - run:
           name: create kubenetes cluster
           command: |
             eksctl create cluster --name eksCluster-${CIRCLE_WORKFLOW_ID:0:7}
-      - run:
-          name: Install kubernetes
-          command: |
-            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-            install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-            kubectl version --client
       - run:
           name: Docker Login
           command: |
