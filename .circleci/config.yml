@@ -322,10 +322,10 @@ jobs:
           name: Load Docker image
           command: |
             kubectl get nodes
-            kubectl create deploy capstone --image=skycrafter/capstone
+            kubectl create deployment capstone --image=skycrafter/capstone
             sleep 60
             kubectl get pods
-            kubectl port-forward capstone 80:80
+            kubectl expose deployment/capstone --type="LoadBalancer" --port 80
       # - destroy-environment:
       #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
