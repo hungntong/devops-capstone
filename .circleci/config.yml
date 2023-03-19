@@ -293,7 +293,6 @@ jobs:
           command: |
             which tar
             which gzip
-            which eksctl 
       - run:
           name: Install eksctl
           command: |
