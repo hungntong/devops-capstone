@@ -287,11 +287,26 @@ jobs:
 
   deploy-cluster:
     docker:
-      - image: cimg/aws:2023.03
+      - image: python:3.7-alpine3.11
     steps:
       - checkout
       - attach_workspace:
-          at: ~/   
+          at: ~/
+      - run:
+          name: Install dependencies
+          command: |
+            apk update
+            apk upgrade
+            apk add tar
+            apk add gzip
+            apk add curl
+      - run:
+          name: Install eksctl
+          command: |
+            bash
+            curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+            mv /tmp/eksctl /usr/local/bin
+            eksctl version
       - run:
           name: create kubenetes cluster
           command: |
