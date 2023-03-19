@@ -286,8 +286,6 @@ jobs:
       - image: cimg/aws:2023.03
     steps:
       - checkout
-      - add_ssh_keys:
-          fingerprints: ["5a:fe:0a:f1:bd:16:54:bc:00:c5:96:40:5c:53:bd:c1"]
       - attach_workspace:
           at: ~/
       - restore_cache:
@@ -295,11 +293,11 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            yum install tar gzip -y
+            apk add tar
+            apk add gzip
       - run:
           name: Install eksctl
           command: |
-            bash
             curl --silent --location "https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
             mv /tmp/eksctl /usr/local/bin
       - run:

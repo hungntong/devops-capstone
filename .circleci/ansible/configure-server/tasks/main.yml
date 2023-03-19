@@ -50,19 +50,3 @@
     name: make
     state: present
 
-- name: "Download minikube"
-  become: true
-  shell: "curl -L 'https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64' -o /usr/local/bin/minikube"
-  args:
-    creates: /usr/local/bin/minikube
-    executable: /bin/bash
-
-- name: "Make minikube binary executable"
-  become: true
-  file:
-    path: /usr/local/bin/minikube
-    mode: "+x"
-
-- name: Check minikube version and status
-  shell: |
-    /usr/local/bin/minikube version
