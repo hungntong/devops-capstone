@@ -184,7 +184,7 @@ jobs:
 
   lint-migration:
     docker:
-      - image: python:3.8
+      - image: python:3.8-alpine3.11
     steps:
       - checkout
       - add_ssh_keys:
@@ -207,7 +207,7 @@ jobs:
             apk add gzip
             apk add curl
             apk add --update ansible
-            python -m pip install --upgrade pip
+            python3 -m pip install --upgrade pip
             pip install awscli --upgrade 
       - run:
           name: Copy and Run Hadolint
