@@ -288,13 +288,11 @@ jobs:
       - checkout
       - attach_workspace:
           at: ~/
-      - restore_cache:
-          keys: [backend-build]  
       - run:
           name: Install dependencies
           command: |
-            apk add tar
-            apk add gzip
+            which tar
+            which gzip 
       - run:
           name: Install eksctl
           command: |
