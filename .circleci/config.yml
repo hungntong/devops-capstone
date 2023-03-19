@@ -587,26 +587,17 @@ jobs:
 workflows:
   default:
     jobs:
-      # - build-frontend
-      - build-backend
-      # - test-frontend:
-      #     requires: [build-frontend]
-      # - test-backend:
+      # - build-backend     
+      # - deploy-infrastructure:
       #     requires: [build-backend]
-      # - scan-backend:
-      #     requires: [build-backend]
-      # - scan-frontend:
-      #     requires: [build-frontend]
-      - deploy-infrastructure:
-          requires: [build-backend]
-      - configure-infrastructure:
-          requires: [deploy-infrastructure]
-      - lint-migration:
-          requires: [configure-infrastructure]
-      - build docker image:
-          requires: [lint-migration]
-      - deploy-cluster:
-          requires: [build docker image]
+      # - configure-infrastructure:
+      #     requires: [deploy-infrastructure]
+      # - lint-migration:
+      #     requires: [configure-infrastructure]
+      # - build docker image:
+      #     requires: [lint-migration]
+      - deploy-cluster
+      #     requires: [build docker image]
       # - run-migrations:
       #     requires: [configure-infrastructure]
       # - deploy-frontend:
