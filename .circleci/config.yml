@@ -317,12 +317,13 @@ jobs:
           name: create kubenetes cluster
           command: |
             aws sts get-caller-identity
-            eksctl create cluster --name eksCluster-${CIRCLE_WORKFLOW_ID:0:7} --nodes=2
+            eksctl create cluster --name eksCluster-${CIRCLE_WORKFLOW_ID:0:7} --nodes=2 --node-type=t3.medium --ssh-access=true --ssh-public-key=test
       - run:
           name: Load Docker image
           command: |
             kubectl get nodes
             kubectl create deploy capstone --image=skycrafter/capstone
+            sleep 60
             kubectl get pods
             kubectl port-forward capstone 80:80
       # - destroy-environment:
