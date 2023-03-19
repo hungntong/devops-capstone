@@ -291,12 +291,7 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: ~/
-      - run:
-          name: check tar and gzip exists
-          command: |
-            which eksctl
-            which kubectl     
+          at: ~/   
       - run:
           name: create kubenetes cluster
           command: |
