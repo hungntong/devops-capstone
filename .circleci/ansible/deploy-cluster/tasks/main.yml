@@ -1,3 +1,9 @@
+- name: "install docker"
+  become: yes
+  apt:
+    name: docker
+    state: present
+
 - name: "Login Docker"
   become: yes
   command: docker login --username $DOCKER_USER --password $DOCKER_PASSWORD
