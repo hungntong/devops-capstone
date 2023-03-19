@@ -41,23 +41,6 @@ commands:
             fi
             
 jobs:
-  build-frontend:
-    docker:
-      - image: cimg/node:13.8.0
-    steps:
-      - checkout
-      - restore_cache:
-          keys: [frontend-build]
-      - run:
-          name: Build front-end
-          command: |
-            cd frontend
-            npm install
-            npm run build
-      - save_cache:
-          paths: [frontend/node_modules]
-          key: frontend-build
-
   build-backend:
     docker:
       - image: cimg/base:2022.09
@@ -227,11 +210,21 @@ jobs:
             python -m pip install --upgrade pip
             pip install awscli --upgrade 
       - run:
-          name: Copy and Lint
+          name: Copy and Run Hadolint
           command: |
               cd .circleci/ansible
               cat inventory.txt
               ansible-playbook -i inventory.txt linting-startup.yml
+      - run:
+          name: Run Pylint
+          command: |
+            cd docker
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install --upgrade pip
+            pip install -r requirements.txt
+            pylint --disable=R,C,W1203,W1202 app.py
+      - setup_remote_docker 
       - run:
           name: Run migration
           command: |
@@ -246,6 +239,10 @@ jobs:
                 echo "insecure" >> ~/.curlrc
                 curl https://kvdb.io/4hkvFqcN1Wuq35GLWsKF3r/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
             fi
+      - run:
+          name: Destroy EC2
+          command: |
+            aws cloudformation delete-stack --stack-name udacity-backend-<< parameters.workflow_id >>
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
@@ -325,7 +322,7 @@ jobs:
             kubectl create deployment capstone --image=skycrafter/capstone
             sleep 60
             kubectl get pods
-            kubectl expose deployment/capstone --type="LoadBalancer" --port 80
+            kubectl expose deployment capstone --port=80 --type=LoadBalancer 
       # - destroy-environment:
       #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
@@ -593,17 +590,17 @@ jobs:
 workflows:
   default:
     jobs:
-      # - build-backend     
-      # - deploy-infrastructure:
-      #     requires: [build-backend]
-      # - configure-infrastructure:
-      #     requires: [deploy-infrastructure]
-      # - lint-migration:
-      #     requires: [configure-infrastructure]
-      # - build docker image:
-      #     requires: [lint-migration]
-      - deploy-cluster
-      #     requires: [build docker image]
+      - build-backend     
+      - deploy-infrastructure:
+          requires: [build-backend]
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]
+      - lint-migration:
+          requires: [configure-infrastructure]
+      - build docker image:
+          requires: [lint-migration]
+      - deploy-cluster:
+          requires: [build docker image]
       # - run-migrations:
       #     requires: [configure-infrastructure]
       # - deploy-frontend:
