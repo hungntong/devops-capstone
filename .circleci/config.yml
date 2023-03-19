@@ -307,13 +307,15 @@ jobs:
             mv /tmp/eksctl /usr/local/bin
             eksctl version
       - run:
+          name: Install kubectl
+          command: |
+            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+            install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+            kubectl version --client            
+      - run:
           name: create kubenetes cluster
           command: |
-            eksctl create cluster --name eksCluster-${CIRCLE_WORKFLOW_ID:0:7}
-      - run:
-          name: Docker Login
-          command: |
-            docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+            eksctl create cluster --name eksCluster-${CIRCLE_WORKFLOW_ID:0:7} --nodes=4
       - run:
           name: Load Docker image
           command: |
