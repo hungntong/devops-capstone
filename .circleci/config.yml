@@ -16,7 +16,8 @@ commands:
           name: Destroy environments
           when: on_fail
           command: |
-            aws cloudformation delete-stack --stack-name udacity-backend-<< parameters.workflow_id >>
+            aws cloudformation delete-stack --stack-name eksCluster-<< parameters.workflow_id >>
+            aws cloudformation delete-stack --stack-name eksNode-<< parameters.workflow_id >>
 
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
@@ -56,66 +57,6 @@ jobs:
       - save_cache:
           paths: [docker]
           key: backend-build
-
-  test-frontend:
-    docker:
-      - image: cimg/base:2022.09
-    steps:
-      - checkout
-      - restore_cache:
-          keys: [frontend-build]
-      - run:
-          name: Run frontend test
-          command: |
-             cd frontend
-             npm install
-             npm run test
-                
-  test-backend:
-    docker:
-      - image: cimg/base:2022.09
-    steps:
-      - checkout
-      - restore_cache:
-          keys: [backend-build]
-      - run:
-          name: Run backend test
-          command: |
-             cd docker
-             hadolint Dockerfile
-            
-  scan-frontend:
-    docker:
-      - image: cimg/node:13.8.0
-    steps:
-      - checkout
-      - restore_cache:
-          keys: [frontend-build]
-      - run:
-          name: Run frontend scan
-          command: |
-             cd frontend
-             npm install
-             npm audit fix --audit-level=critical --force
-             npm audit fix --force
-             npm audit --audit-level=critical
-
-  scan-backend:
-    docker:
-      - image: cimg/node:13.8.0
-    steps:
-      - checkout
-      - restore_cache:
-          keys: [backend-build]
-      - run:
-          name: Run backend scan
-          command: |
-             cd backend
-             npm install
-             npm audit fix
-             npm audit fix --audit-level=critical --force
-             npm audit fix --force
-             npm audit --audit-level=critical
 
   deploy-infrastructure:
     docker:
@@ -312,8 +253,23 @@ jobs:
       - run:
           name: create kubenetes cluster
           command: |
-            aws sts get-caller-identity
-            eksctl create cluster --name eksCluster-${CIRCLE_WORKFLOW_ID:0:7} --nodes=2 --node-type=t3.medium --ssh-access=true --ssh-public-key=udacity
+            eksctl create cluster --name eksCluster-${CIRCLE_WORKFLOW_ID:0:7} --without-nodegroup
+
+      - run:
+          name: create kubenetes cluster
+          command: |
+            eksctl create nodegroup \
+              --cluster eksCluster-${CIRCLE_WORKFLOW_ID:0:7} \
+              --region us-west-2 \
+              --name eksNode-${CIRCLE_WORKFLOW_ID:0:7} \
+              --node-ami-family ami-family \
+              --node-type t3.medium \
+              --nodes 2 \
+              --nodes-min 1 \
+              --nodes-max 2 \
+              --ssh-access \
+              --ssh-public-key udacity
+
       - run:
           name: Load Docker image
           command: |
@@ -322,8 +278,8 @@ jobs:
             sleep 60
             kubectl get pods
             kubectl expose deployment capstone --port=80 --type=LoadBalancer 
-      # - destroy-environment:
-      #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - destroy-environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   run-migrations:
     docker:
@@ -509,7 +465,7 @@ jobs:
       - revert-migrations:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}  
 
-  cloudfront-update:
+  cloudformation-update:
     docker:
       # Docker image here that supports AWS CLI
       - image: amazon/aws-cli
@@ -535,11 +491,6 @@ jobs:
             --no-paginate --output text)
             echo ${OldWorkflowID} >> ~/OldWorkflowID.txt
             cat ~/OldWorkflowID.txt
-            aws cloudformation deploy \
-            --template-file .circleci/files/cloudfront.yml \
-            --stack-name InitialStack \
-            --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
-            --tags project=udapeople
       # Here's where you will add some code to rollback on failure1
       - persist_to_workspace:
           root: ~/
@@ -547,8 +498,8 @@ jobs:
             - OldWorkflowID.txt
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7} 
-      - revert-migrations:
-          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}    
+      # - revert-migrations:
+      #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}    
 
   cleanup:
       docker:
@@ -580,9 +531,8 @@ jobs:
               echo Stack names: "${STACKS[@]}"
               if [[ "${CIRCLE_WORKFLOW_ID:0:7}" != "${OldWorkflowID}" ]]
               then
-                aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
-                aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
-                aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
+                aws cloudformation delete-stack --stack-name "eksCluster-${OldWorkflowID}"
+                aws cloudformation delete-stack --stack-name "eksNode-${OldWorkflowID}"
               fi
             
 
@@ -608,7 +558,6 @@ workflows:
       #     requires: [run-migrations]
       # - smoke-test:
       #     requires: [deploy-backend, deploy-frontend]
-      # - cloudfront-update:
-      #     requires: [smoke-test]
-      # - cleanup:
-      #     requires: [cloudfront-update]
+      - cloudformation-update
+      - cleanup:
+          requires: [cloudformation-update]
