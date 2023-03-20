@@ -558,6 +558,7 @@ workflows:
       #     requires: [run-migrations]
       # - smoke-test:
       #     requires: [deploy-backend, deploy-frontend]
-      - cloudformation-update
+      - cloudformation-update:
+          requires: [deploy-cluster]
       - cleanup:
           requires: [cloudformation-update]
