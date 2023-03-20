@@ -16,8 +16,8 @@ commands:
           name: Destroy environments
           when: on_fail
           command: |
-            aws cloudformation delete-stack --stack-name eksCluster-<< parameters.workflow_id >>
-            aws cloudformation delete-stack --stack-name eksNode-<< parameters.workflow_id >>
+            aws cloudformation delete-stack --stack-name eksctl-eksCluster-<< parameters.workflow_id >>-cluster
+            aws cloudformation delete-stack --stack-name eksctl-eksNode-<< parameters.workflow_id >>-nodegroup
 
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
@@ -262,7 +262,7 @@ jobs:
               --cluster eksCluster-${CIRCLE_WORKFLOW_ID:0:7} \
               --region us-west-2 \
               --name eksNode-${CIRCLE_WORKFLOW_ID:0:7} \
-              --node-ami-family ami-family \
+              --node-ami-family Ubuntu2004 \
               --node-type t3.medium \
               --nodes 2 \
               --nodes-min 1 \
@@ -531,8 +531,8 @@ jobs:
               echo Stack names: "${STACKS[@]}"
               if [[ "${CIRCLE_WORKFLOW_ID:0:7}" != "${OldWorkflowID}" ]]
               then
-                aws cloudformation delete-stack --stack-name "eksCluster-${OldWorkflowID}"
-                aws cloudformation delete-stack --stack-name "eksNode-${OldWorkflowID}"
+                aws cloudformation delete-stack --stack-name "eksctl-eksCluster-${OldWorkflowID}-cluster"
+                aws cloudformation delete-stack --stack-name "eksctl-eksNode-${OldWorkflowID}-cluster"
               fi
             
 
