@@ -279,6 +279,7 @@ jobs:
             sleep 60
             kubectl get pods
             kubectl expose deployment capstone --port=80 --type=LoadBalancer --name=htonglb
+            kubectl get svc -o jsonpath='{$.items[*].status.loadBalancer}' | cut -b 26-68
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
@@ -411,17 +412,17 @@ jobs:
 workflows:
   default:
     jobs:
-      - build-backend     
-      - deploy-infrastructure:
-          requires: [build-backend]
-      - configure-infrastructure:
-          requires: [deploy-infrastructure]
-      - lint-migration:
-          requires: [configure-infrastructure]
-      - build docker image:
-          requires: [lint-migration]
-      - deploy-cluster:
-          requires: [build docker image]
+      # - build-backend     
+      # - deploy-infrastructure:
+      #     requires: [build-backend]
+      # - configure-infrastructure:
+      #     requires: [deploy-infrastructure]
+      # - lint-migration:
+      #     requires: [configure-infrastructure]
+      # - build docker image:
+      #     requires: [lint-migration]
+      - deploy-cluster
+          #requires: [build docker image]
       # - run-migrations:
       #     requires: [configure-infrastructure]
       # - deploy-frontend:
