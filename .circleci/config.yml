@@ -16,8 +16,8 @@ commands:
           name: Destroy environments
           when: on_fail
           command: |
-            aws cloudformation delete-stack --stack-name eksctl-eksCluster-<< parameters.workflow_id >>-cluster
-            aws cloudformation delete-stack --stack-name eksctl-eksCluster-<< parameters.workflow_id >>-nodegroup-a
+            aws cloudformation delete-stack --stack-name eksctl-eksCluster-<<parameters.workflow_id>>-nodegroup-a
+            aws cloudformation delete-stack --stack-name eksctl-eksCluster-<<parameters.workflow_id>>-cluster            
 
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
