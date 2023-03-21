@@ -16,7 +16,8 @@ commands:
           name: Destroy environments
           when: on_fail
           command: |
-            eksctl delete cluster eksctl-eksCluster-<<parameters.workflow_id>>-cluster            
+            eksctl delete nodegroup --cluster eksctl-eksCluster-<<parameters.workflow_id>>  --name a
+            eksctl delete cluster eksctl-eksCluster-<<parameters.workflow_id>>            
 
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
@@ -273,10 +274,10 @@ jobs:
           name: Load Docker image
           command: |
             kubectl get nodes
-            kubectl create deployment capstone --image=skycrafter/capstone
-            sleep 60
-            kubectl get pods
+            kubectl create deployment capstone --image=skycrafter/capstone           
             kubectl expose deployment capstone --port=80 --type=LoadBalancer --name=htonglb
+            sleep 400
+            kubectl get pods
             kubectl get services
             kubectl get nodes -o wide
             kubectl describe services htonglb
