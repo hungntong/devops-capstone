@@ -17,6 +17,7 @@ commands:
           when: on_fail
           command: |
             aws cloudformation delete-stack --stack-name eksctl-eksCluster-<<parameters.workflow_id>>-nodegroup-a
+            wait 60
             aws cloudformation delete-stack --stack-name eksctl-eksCluster-<<parameters.workflow_id>>-cluster            
 
   revert-migrations:
@@ -350,7 +351,7 @@ jobs:
       - run: 
           name: get load balancers information
           command: |
-            ELB = $(aws elbv2 describe-load-balancers --query 'LoadBalancers[*].[LoadBalancerName,DNSName,LoadBalancerArn]' --output text)
+            ELB=$(aws elbv2 describe-load-balancers --query 'LoadBalancers[*].[LoadBalancerName,DNSName]' --output text)
             echo ${ELB}
       - run:
           name: Update cloudfront distribution
