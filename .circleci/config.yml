@@ -16,9 +16,7 @@ commands:
           name: Destroy environments
           when: on_fail
           command: |
-            aws cloudformation delete-stack --stack-name eksctl-eksCluster-<<parameters.workflow_id>>-nodegroup-a
-            wait 60
-            aws cloudformation delete-stack --stack-name eksctl-eksCluster-<<parameters.workflow_id>>-cluster            
+            eksctl delete cluster eksctl-eksCluster-<<parameters.workflow_id>>-cluster            
 
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
@@ -279,7 +277,7 @@ jobs:
             sleep 60
             kubectl get pods
             kubectl expose deployment capstone --port=80 --type=LoadBalancer --name=htonglb
-            kubectl get svc -o jsonpath='{$.items[*].status.loadBalancer}' | cut -b 26-68
+            kubectl get services - wide
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
@@ -349,12 +347,6 @@ jobs:
             ./aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli --update
       - attach_workspace:
           at: ~/
-      - run: 
-          name: get load balancers information
-          command: |
-            ELB=$(aws elb describe-load-balancers --query 'LoadBalancers[*].[LoadBalancerName,DNSName]' --output text)
-            echo ${ELB} >> ~/elb.txt
-            cat ~/elb.txt
       - run:
           name: Update cloudfront distribution
           command: |
@@ -382,6 +374,12 @@ jobs:
         # Checkout code from git2
         - checkout
         - run:
+            name: Install eksctl
+            command: |
+              curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+              mv /tmp/eksctl /usr/local/bin
+              eksctl version
+        - run:
             name: Install dependencies
             command: |
               # your code here
@@ -403,9 +401,8 @@ jobs:
                       --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
               echo Stack names: "${STACKS[@]}"
               if [[ "${CIRCLE_WORKFLOW_ID:0:7}" != "${OldWorkflowID}" ]]
-              then
-                aws cloudformation delete-stack --stack-name "eksctl-eksCluster-${OldWorkflowID}-nodegroup-a"
-                aws cloudformation delete-stack --stack-name "eksctl-eksCluster-${OldWorkflowID}-cluster"                
+              then                
+                eksctl delete cluster "eksctl-eksCluster-${OldWorkflowID}-cluster"                
               fi      
             
 
