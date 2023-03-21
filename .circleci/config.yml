@@ -281,7 +281,7 @@ jobs:
             kubectl get services
             kubectl get nodes -o wide
             kubectl describe services htonglb
-            aws elb describe-load-balancers
+            aws elb describe-load-balancers --load-balancer-name htonglb --query LoadBalancerDescriptions[].DNSName --output text
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
@@ -305,25 +305,12 @@ jobs:
       - run:
           name: Get backend url and smoke test
           command: |
-            export BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --filters Name=tag:Name,Values="backend-${CIRCLE_WORKFLOW_ID:0:7}" --output text)
+            export BACKEND_IP=$(aws elb describe-load-balancers --load-balancer-name htonglb --query LoadBalancerDescriptions[].DNSName --output text)
             echo "$BACKEND_IP"
-            export API_URL="http://${BACKEND_IP}:3030"
+            export API_URL="http://${BACKEND_IP}:80"
             echo "${API_URL}"
-            if curl "${API_URL}/api/status" | grep "ok"
+            if curl "${API_URL}" | grep "Hello"
             then
-              return 0
-            else
-              return 1
-            fi
-      - run:
-          name: Frontend smoke test.
-          command: |
-            # your code here
-            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-west-2.amazonaws.com/#/employees"            
-            echo ${URL} 
-            if curl -s ${URL} | grep "Welcome"
-            then
-                # Change this to 0 after the job fails
               return 0
             else
               return 1
@@ -331,8 +318,6 @@ jobs:
       # Here's where you will add some code to rollback on failure
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7} 
-      - revert-migrations:
-          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}  
 
   cloudformation-update:
     docker:
@@ -354,6 +339,8 @@ jobs:
       - run:
           name: Update cloudfront distribution
           command: |
+            export BACKEND_IP=$(aws elb describe-load-balancers --load-balancer-name htonglb --query LoadBalancerDescriptions[].DNSName --output text)
+            echo "$BACKEND_IP"
             aws eks update-kubeconfig --name eksCluster-${CIRCLE_WORKFLOW_ID:0:7} --region us-west-2
             aws ec2 describe-network-interfaces --filters Name=description,Values="htonglb" --query 'NetworkInterfaces[*].PrivateIpAddresses[*].PrivateIpAddress' --output text
 
@@ -381,12 +368,6 @@ jobs:
         # Checkout code from git2
         - checkout
         - run:
-            name: Install eksctl
-            command: |
-              curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-              mv /tmp/eksctl /usr/local/bin
-              eksctl version
-        - run:
             name: Install dependencies
             command: |
               # your code here
@@ -394,6 +375,12 @@ jobs:
               curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
               unzip awscliv2.zip
               ./aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli --update
+        - run:
+            name: Install eksctl
+            command: |
+              curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+              mv /tmp/eksctl /usr/local/bin
+              eksctl version
         - attach_workspace:
             at: ~/
         - run:
@@ -409,7 +396,7 @@ jobs:
               echo Stack names: "${STACKS[@]}"
               if [[ "${CIRCLE_WORKFLOW_ID:0:7}" != "${OldWorkflowID}" ]]
               then                
-                eksctl delete cluster "eksctl-eksCluster-${OldWorkflowID}-cluster"                
+                eksctl delete cluster "eksCluster-${OldWorkflowID}"                
               fi      
             
 
