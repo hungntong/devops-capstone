@@ -17,7 +17,7 @@ commands:
           when: on_fail
           command: |
             aws cloudformation delete-stack --stack-name eksctl-eksCluster-<< parameters.workflow_id >>-cluster
-            aws cloudformation delete-stack --stack-name eksctl-eksCluster-<< parameters.workflow_id >>-nodegroup
+            aws cloudformation delete-stack --stack-name eksctl-eksCluster-<< parameters.workflow_id >>-nodegroup-a
 
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
@@ -277,7 +277,7 @@ jobs:
             kubectl create deployment capstone --image=skycrafter/capstone
             sleep 60
             kubectl get pods
-            kubectl expose deployment capstone --port=80 --type=LoadBalancer 
+            kubectl expose deployment capstone --port=80 --type=LoadBalancer --name=htonglb
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
@@ -350,7 +350,8 @@ jobs:
       - run: 
           name: get load balancers information
           command: |
-            aws elb describe-load-balancers
+            ELB = $(aws elbv2 describe-load-balancers --query 'LoadBalancers[*].[LoadBalancerName,DNSName,LoadBalancerArn]' --output text)
+            echo ${ELB}
       - run:
           name: Update cloudfront distribution
           command: |
@@ -400,8 +401,8 @@ jobs:
               echo Stack names: "${STACKS[@]}"
               if [[ "${CIRCLE_WORKFLOW_ID:0:7}" != "${OldWorkflowID}" ]]
               then
-                aws cloudformation delete-stack --stack-name "eksctl-eksCluster-${OldWorkflowID}-cluster"
                 aws cloudformation delete-stack --stack-name "eksctl-eksCluster-${OldWorkflowID}-nodegroup-a"
+                aws cloudformation delete-stack --stack-name "eksctl-eksCluster-${OldWorkflowID}-cluster"                
               fi
         - persist_to_workspace:
             root: ~/
