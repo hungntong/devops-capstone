@@ -277,7 +277,9 @@ jobs:
             sleep 60
             kubectl get pods
             kubectl expose deployment capstone --port=80 --type=LoadBalancer --name=htonglb
-            kubectl get services - wide
+            kubectl get services
+            kubectl get nodes -o wide
+            kubectl describe services htonglb
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
