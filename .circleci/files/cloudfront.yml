@@ -5,7 +5,6 @@ Parameters:
   LBAddr:
     Description: Load Balancer address.
     Type: String
-    Default: http://a0770d4b9341f4b53ab09eff96717ba5-358645346.us-west-2.elb.amazonaws.com/
   WorkflowID:
     Description: Unique identifier.
     Type: String
