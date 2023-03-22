@@ -16,8 +16,8 @@ commands:
           name: Destroy environments
           when: on_fail
           command: |
-            eksctl delete nodegroup --cluster eksctl-eksCluster-<<parameters.workflow_id>>  --name a
-            eksctl delete cluster eksctl-eksCluster-<<parameters.workflow_id>>            
+            eksctl delete nodegroup --cluster eksCluster-<<parameters.workflow_id>>  --name a
+            eksctl delete cluster eksCluster-<<parameters.workflow_id>>            
 
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
@@ -281,7 +281,7 @@ jobs:
             kubectl get services
             kubectl get nodes -o wide
             kubectl describe services htonglb
-            aws elb describe-load-balancers --load-balancer-name htonglb --query LoadBalancerDescriptions[].DNSName --output text
+            aws elb describe-load-balancers --query LoadBalancerDescriptions[*].DNSName --output text
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
@@ -305,11 +305,11 @@ jobs:
       - run:
           name: Get backend url and smoke test
           command: |
-            export BACKEND_IP=$(aws elb describe-load-balancers --load-balancer-name htonglb --query LoadBalancerDescriptions[].DNSName --output text)
+            export BACKEND_IP=$(aws elb describe-load-balancers --query LoadBalancerDescriptions[*].DNSName --output text)
             echo "$BACKEND_IP"
             export API_URL="http://${BACKEND_IP}:80"
             echo "${API_URL}"
-            if curl "${API_URL}" | grep "Hello"
+            if curl "${API_URL}" | grep "Hi Udacity"
             then
               return 0
             else
