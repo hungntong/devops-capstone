@@ -17,7 +17,20 @@ commands:
           when: on_fail
           command: |
             eksctl delete nodegroup --cluster eksCluster-<<parameters.workflow_id>>  --name a
-            eksctl delete cluster eksCluster-<<parameters.workflow_id>>            
+            eksctl delete cluster eksCluster-<<parameters.workflow_id>> 
+
+  destroy-ec2-environment:
+    description: Destroy back-end cloudformation stacks given a workflow ID.
+    parameters:
+      # Add parameter here
+      workflow_id:
+        type: string   
+    steps:
+      - run:
+          name: Destroy environments
+          when: on_fail
+          command: |
+            aws cloudformation delete-stack --stack-name udacity-backend-${CIRCLE_WORKFLOW_ID:0:7}     
 
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
@@ -92,7 +105,7 @@ jobs:
           root: ~/
           paths:
             - project/.circleci/ansible/inventory.txt
-      - destroy-environment:
+      - destroy-ec2-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}  
 
   configure-infrastructure:
@@ -120,7 +133,7 @@ jobs:
               cd .circleci/ansible
               cat inventory.txt
               ansible-playbook -i inventory.txt configure-server.yml
-      - destroy-environment:
+      - destroy-ec2-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   lint-migration:
@@ -183,7 +196,7 @@ jobs:
           name: Destroy EC2
           command: |
             aws cloudformation delete-stack --stack-name udacity-backend-${CIRCLE_WORKFLOW_ID:0:7}
-      - destroy-environment:
+      - destroy-ec2-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   build-docker-image:
