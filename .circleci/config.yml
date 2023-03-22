@@ -298,10 +298,16 @@ jobs:
             # your code here
             apk update
             apk upgrade
-            apk add --update ansible curl openssh nodejs npm
+            apk add --update ansible curl openssh
             ansible --version
             pip install awscli
-            aws --version  
+            aws --version
+      - run:
+          name: Install eksctl
+          command: |
+            curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+            mv /tmp/eksctl /usr/local/bin
+            eksctl version  
       - run:
           name: Get backend url and smoke test
           command: |
