@@ -421,23 +421,17 @@ jobs:
 workflows:
   default:
     jobs:
-      # - build-backend     
-      # - deploy-infrastructure:
-      #     requires: [build-backend]
-      # - configure-infrastructure:
-      #     requires: [deploy-infrastructure]
-      # - lint-migration:
-      #     requires: [configure-infrastructure]
-      # - build docker image:
-      #     requires: [lint-migration]
+      - build-backend     
+      - deploy-infrastructure:
+          requires: [build-backend]
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]
+      - lint-migration:
+          requires: [configure-infrastructure]
+      - build docker image:
+          requires: [lint-migration]
       - deploy-cluster
-          #requires: [build docker image]
-      # - run-migrations:
-      #     requires: [configure-infrastructure]
-      # - deploy-frontend:
-      #     requires: [run-migrations]
-      # - deploy-backend:
-      #     requires: [run-migrations]
+          requires: [build docker image]
       - smoke-test:
           requires: [deploy-cluster]
       - cloudfront-update:
