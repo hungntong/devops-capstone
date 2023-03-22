@@ -307,9 +307,9 @@ jobs:
           command: |
             export BACKEND_IP=$(aws elb describe-load-balancers --query LoadBalancerDescriptions[*].DNSName --output text)
             echo "$BACKEND_IP"
-            export API_URL="http://${BACKEND_IP}:80"
-            echo "${API_URL}"
-            if curl "${API_URL}" | grep "Hi Udacity"
+            export LB_URL="http://${BACKEND_IP}"
+            echo "${LB_URL}"
+            if curl "${LB_URL}" | grep "Hi Udacity"
             then
               return 0
             else
@@ -420,9 +420,9 @@ workflows:
       #     requires: [run-migrations]
       # - deploy-backend:
       #     requires: [run-migrations]
-      # - smoke-test:
-      #     requires: [deploy-backend, deploy-frontend]
-      - cloudformation-update:
+      - smoke-test:
           requires: [deploy-cluster]
-      - cleanup:
-          requires: [cloudformation-update]
+      - cloudformation-update:
+          requires: [smoke-test]
+      # - cleanup:
+      #     requires: [cloudformation-update]
