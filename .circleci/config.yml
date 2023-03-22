@@ -311,7 +311,7 @@ jobs:
       - run:
           name: Get backend url and smoke test
           command: |
-            export BACKEND_IP=$(aws elb describe-load-balancers --query LoadBalancerDescriptions[*].DNSName --output text)
+            export BACKEND_IP=$(aws elb describe-load-balancers --query LoadBalancerDescriptions[1].DNSName --output text)
             echo "$BACKEND_IP"
             export LB_URL="http://${BACKEND_IP}"
             echo "${LB_URL}"
