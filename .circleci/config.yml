@@ -319,7 +319,7 @@ jobs:
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7} 
 
-  cloudformation-update:
+  cloudfront-update:
     docker:
       # Docker image here that supports AWS CLI
       - image: amazon/aws-cli
@@ -341,15 +341,20 @@ jobs:
           command: |
             export BACKEND_IP=$(aws elb describe-load-balancers --query LoadBalancerDescriptions[*].DNSName --output text)
             echo "$BACKEND_IP"
-            aws eks update-kubeconfig --name eksCluster-${CIRCLE_WORKFLOW_ID:0:7} --region us-west-2
-            aws ec2 describe-network-interfaces --filters Name=description,Values="htonglb" --query 'NetworkInterfaces[*].PrivateIpAddresses[*].PrivateIpAddress' --output text
-
+            #aws eks update-kubeconfig --name eksCluster-${CIRCLE_WORKFLOW_ID:0:7} --region us-west-2
+            # aws ec2 describe-network-interfaces --filters Name=description,Values="htonglb" --query 'NetworkInterfaces[*].PrivateIpAddresses[*].PrivateIpAddress' --output text
             # your code here
             export OldWorkflowID=$(aws cloudformation \
             list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
             --no-paginate --output text)
+            echo ${OldWorkflowID}
             echo ${OldWorkflowID} >> ~/OldWorkflowID.txt
             cat ~/OldWorkflowID.txt
+            aws cloudformation deploy \
+            --template-file .circleci/files/cloudfront.yml \
+            --stack-name InitialStack \
+            --parameter-overrides LBAddr="${BACKEND_IP}" \
+            --tags project=capstone
       # Here's where you will add some code to rollback on failure1
       - persist_to_workspace:
           root: ~/
@@ -422,7 +427,7 @@ workflows:
       #     requires: [run-migrations]
       - smoke-test:
           requires: [deploy-cluster]
-      - cloudformation-update:
+      - cloudfront-update:
           requires: [smoke-test]
       # - cleanup:
       #     requires: [cloudformation-update]
