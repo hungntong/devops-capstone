@@ -186,7 +186,7 @@ jobs:
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
-  build docker image:
+  build-docker-image:
     docker:
       - image: python:3.8
     steps:
@@ -428,10 +428,10 @@ workflows:
           requires: [deploy-infrastructure]
       - lint-migration:
           requires: [configure-infrastructure]
-      - build docker image:
+      - build-docker-image:
           requires: [lint-migration]
-      - deploy-cluster
-          requires: [build docker image]
+      - deploy-cluster:
+          requires: [build-docker-image]
       - smoke-test:
           requires: [deploy-cluster]
       - cloudfront-update:
