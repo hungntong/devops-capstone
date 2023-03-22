@@ -351,7 +351,7 @@ jobs:
       - run:
           name: Update cloudfront distribution
           command: |
-            export BACKEND_IP=$(aws elb describe-load-balancers --query LoadBalancerDescriptions[*].DNSName --output text)
+            export BACKEND_IP=$(aws elb describe-load-balancers --query LoadBalancerDescriptions[1].DNSName --output text)
             echo "$BACKEND_IP"
             #aws eks update-kubeconfig --name eksCluster-${CIRCLE_WORKFLOW_ID:0:7} --region us-west-2
             # aws ec2 describe-network-interfaces --filters Name=description,Values="htonglb" --query 'NetworkInterfaces[*].PrivateIpAddresses[*].PrivateIpAddress' --output text
