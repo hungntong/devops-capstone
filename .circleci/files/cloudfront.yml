@@ -5,6 +5,9 @@ Parameters:
   LBAddr:
     Description: Load Balancer address.
     Type: String
+  WorkflowID:
+    Description: Unique identifier.
+    Type: String
 
 Resources:
   
@@ -24,7 +27,7 @@ Resources:
             CustomOriginConfig:
               OriginProtocolPolicy: http-only
         Enabled: True
-        DefaultRootObject: index.html
+        DefaultRootObject: !Sub "${LBAddr}"
         DefaultCacheBehavior:
           ForwardedValues:
             QueryString: False
@@ -37,3 +40,8 @@ Outputs:
     Description: Load Balancer URL
     Export:
       Name: LBAddr
+  WorkflowID:
+    Value: !Sub ${WorkflowID}
+    Description: WorkId For Deployment
+    Export:
+      Name: WorkflowID

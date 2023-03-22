@@ -366,6 +366,7 @@ jobs:
             --template-file .circleci/files/cloudfront.yml \
             --stack-name InitialStack \
             --parameter-overrides LBAddr="${BACKEND_IP}" \
+            --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
             --tags project=capstone
       # Here's where you will add some code to rollback on failure1
       - persist_to_workspace:
@@ -412,7 +413,8 @@ jobs:
                       --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
               echo Stack names: "${STACKS[@]}"
               if [[ "${CIRCLE_WORKFLOW_ID:0:7}" != "${OldWorkflowID}" ]]
-              then                
+              then
+                eksctl delete nodegroup --cluster eksCluster-${OldWorkflowID}  --name a                
                 eksctl delete cluster "eksCluster-${OldWorkflowID}"                
               fi      
             
@@ -441,5 +443,5 @@ workflows:
           requires: [deploy-cluster]
       - cloudfront-update:
           requires: [smoke-test]
-      # - cleanup:
-      #     requires: [cloudformation-update]
+      - cleanup:
+          requires: [cloudformation-update]
