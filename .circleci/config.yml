@@ -304,7 +304,6 @@ jobs:
             else
               return 1
             fi
-      # Here's where you will add some code to rollback on failure
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7} 
 
@@ -350,7 +349,6 @@ jobs:
             --stack-name InitialStack \
             --parameter-overrides LBAddr="${BACKEND_IP}" WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
             --tags project=capstone
-      # Here's where you will add some code to rollback on failure1
       - persist_to_workspace:
           root: ~/
           paths:
